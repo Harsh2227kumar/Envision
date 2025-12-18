@@ -178,7 +178,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--output",
-        default=str(PROJECT_DIR / "preprocessed_data.ccsv"),
+        default=str(PROJECT_DIR / "preprocessed_data.csv"),
         help="Output CSV file"
     )
 

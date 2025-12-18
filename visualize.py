@@ -16,10 +16,21 @@ def load_data(filepath):
     path = Path(filepath)
     if not path.is_absolute():
         path = PROJECT_DIR / path
-    if not path.exists():
-        raise FileNotFoundError(f"Input file not found: {path}")
 
-    df = pd.read_csv(path)
+    # Fallback: if default CSV doesn't exist, try alternate .ccsv or .csv
+    candidate_paths = [path]
+    if path.suffix.lower() == ".csv":
+        candidate_paths.append(path.with_suffix(".ccsv"))
+    elif path.suffix.lower() == ".ccsv":
+        candidate_paths.append(path.with_suffix(".csv"))
+
+    for p in candidate_paths:
+        if p.exists():
+            df = pd.read_csv(p)
+            print("Dataset Loaded:", df.shape, "from", p)
+            return df
+
+    raise FileNotFoundError(f"Input file not found: {candidate_paths[0]}")
     print("Dataset Loaded:", df.shape)
     return df
 
@@ -36,7 +47,13 @@ def ensure_features(df):
     ]
     for col in bool_cols:
         if col in df.columns:
-            df[col] = df[col].astype(float).astype(int)
+            df[col] = (
+                df[col]
+                .astype(str)
+                .str.upper()
+                .map({"TRUE": 1, "FALSE": 0, "1": 1, "0": 0})
+            )
+            df[col] = df[col].fillna(0).astype(int)
 
     # If risk_category is missing (e.g., using raw data), derive it from risk_score.
     if "risk_category" not in df.columns and "risk_score" in df.columns:
@@ -157,7 +174,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--input",
-        default=str(PROJECT_DIR / "preprocessed_data.ccsv"),
+        default=str(PROJECT_DIR / "preprocessed_data.csv"),
         help="Path to the preprocessed CSV file.",
     )
 
