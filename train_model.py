@@ -5,12 +5,18 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, classification_report
 from sklearn.ensemble import RandomForestClassifier
 
-df = pd.read_csv("data/preprocessed_data.csv")
+# Load preprocessed features with risk categories
+df = pd.read_csv("old_preprocessed_data.csv")
 
+# Drop non-feature columns
 drop_cols = [
     "title", "link", "description", "pub_date", "source",
-    "source_url", "extracted_at", "domain"
+    "source_url", "extracted_at", "domain",
+    "risk_score", "risk_category_Medium", "risk_category_Low"
 ]
+
+# Only drop columns that exist
+drop_cols = [col for col in drop_cols if col in df.columns]
 
 X = df.drop(columns=drop_cols + ["risk_category_High"])
 y = df["risk_category_High"]
